@@ -1,7 +1,9 @@
-/code/Debug
-/code/code.sln
-/code/code/Debug
-/code/code/code.vcxproj
-/code/code/code.vcxproj.filters
-/code/code/code.vcxproj.user
-/code/.vs
+/ConsoleApplication1/Debug
+/ConsoleApplication1/ConsoleApplication1.sln
+/ConsoleApplication1/ConsoleApplication1/Debug
+/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj
+/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj.filters
+/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj.user
+/ConsoleApplication1/.vs
+.vs
+code
