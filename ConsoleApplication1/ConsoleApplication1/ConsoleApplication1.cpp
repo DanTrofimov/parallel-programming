@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <omp.h>
 
+
+
 void first_task() {
 #pragma omp parallel num_threads(8)
 	{
