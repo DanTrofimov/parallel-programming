@@ -123,7 +123,7 @@ void fifth()
 					if (d[i][j] % 3 == 0) count++;
 				}
 			}
-			printf("Num mod 3 == 0 amount: %d, current thread; %d \n", count, omp_get_thread_num());
+			printf("Num mod 3 = 0 amount: %d, current thread; %d \n", count, omp_get_thread_num());
 		}
 	}
 }
