@@ -9,7 +9,7 @@ void sixth()
 		a[i] = rand() % 10;
 	}
 	int for_sum = 0;
- #pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < 100; i++)
 	{
 		for_sum += a[i];
@@ -18,7 +18,7 @@ void sixth()
 	printf("Average for sum: %d \n", for_sum / 100);
 
 	int sum = 0;
-#pragma omp parallel for reduction(+:sum)
+	#pragma omp parallel for reduction(+:sum)
 	for (int i = 0; i < 100; i++) {
 			sum += a[i];
 	}
@@ -30,14 +30,14 @@ void seventh()
 	int a[12];
 	int b[12];
 	int c[12];
-#pragma omp parallel for schedule(static, 5) num_threads(3)
+	#pragma omp parallel for schedule(static, 5) num_threads(3)
 	for (int i = 0; i < 12; i++)
 	{
 		a[i] = rand() % 10;
 		b[i] = rand() % 10;
 		printf("a = %d, b = %d, current thread = %d\n", a[i], b[i], omp_get_thread_num());
 	}
-#pragma omp parallel for schedule(dynamic, 6) num_threads(4)
+	#pragma omp parallel for schedule(dynamic, 6) num_threads(4)
 	for (int i = 0; i < 12; i++)
 	{
 		c[i] = a[i] + b[i];
@@ -47,7 +47,7 @@ void seventh()
 
 void eigth_task_guided(long a[], double b[]) {
 	double start_time = omp_get_wtime();
-#pragma omp parallel for schedule(guided, 500)
+	#pragma omp parallel for schedule(guided, 500)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -58,7 +58,7 @@ void eigth_task_guided(long a[], double b[]) {
 
 void eigth_task_runtime(long a[], double b[]) {
 	double start_time = omp_get_wtime();
-#pragma omp parallel for schedule(runtime)
+	#pragma omp parallel for schedule(runtime)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -79,7 +79,7 @@ void eigth()
 	int chunk_size = 300;
 
 	double start_time = omp_get_wtime();
-#pragma omp parallel for schedule(dynamic, chunk_size)
+	#pragma omp parallel for schedule(dynamic, chunk_size)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -88,7 +88,7 @@ void eigth()
 	printf("Dynamic: = %f \n", end_time - start_time);
 
 	start_time = omp_get_wtime();
-#pragma omp parallel for schedule(guided, chunk_size)
+	#pragma omp parallel for schedule(guided, chunk_size)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -97,7 +97,7 @@ void eigth()
 	printf("Guided: = %f \n", end_time - start_time);
 
 	start_time = omp_get_wtime();
-#pragma omp parallel for schedule(runtime)
+	#pragma omp parallel for schedule(runtime)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -106,7 +106,7 @@ void eigth()
 	printf("Runtime: = %f \n", end_time - start_time);
 
 	start_time = omp_get_wtime();
-#pragma omp parallel for schedule(static, chunk_size)
+	#pragma omp parallel for schedule(static, chunk_size)
 	for (int i = 1; i < 15999; i++)
 	{
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
@@ -141,7 +141,7 @@ void ninth()
 	double end_time = omp_get_wtime();
 	printf("Time for non-parallel: %f \n", end_time - start_time);
 	start_time = omp_get_wtime();
-#pragma omp parallel for schedule(dynamic, chunk_size)
+	#pragma omp parallel for schedule(dynamic, chunk_size)
 	for (int i = 0; i < size; i++)
 	{
 		for (int j = 0; j < size; j++)
