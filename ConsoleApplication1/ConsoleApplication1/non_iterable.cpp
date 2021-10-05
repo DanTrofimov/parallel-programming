@@ -127,9 +127,9 @@ void fifth()
 		}
 	}
 }
-
+/*
 int main()
 {
 	fifth();
-	return EXIT_SUCCESS;
 }
+*/
