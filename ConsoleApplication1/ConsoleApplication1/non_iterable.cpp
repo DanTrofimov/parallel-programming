@@ -61,7 +61,7 @@ void fouth()
 	}
 	#pragma omp parallel num_threads(2)
 	{
-	#pragma omp master
+		#pragma omp master
 		{
 			int min = 10;
 			for (int i = 0; i < 10; i++)

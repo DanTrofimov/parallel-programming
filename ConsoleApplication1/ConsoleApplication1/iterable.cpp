@@ -45,28 +45,6 @@ void seventh()
 	}
 }
 
-void eigth_task_guided(long a[], double b[]) {
-	double start_time = omp_get_wtime();
-	#pragma omp parallel for schedule(guided, 500)
-	for (int i = 1; i < 15999; i++)
-	{
-		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
-	}
-	double end = omp_get_wtime();
-	printf("guided time = %.16g \n", end - start_time);
-}
-
-void eigth_task_runtime(long a[], double b[]) {
-	double start_time = omp_get_wtime();
-	#pragma omp parallel for schedule(runtime)
-	for (int i = 1; i < 15999; i++)
-	{
-		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
-	}
-	double end = omp_get_wtime();
-	printf("runtime time = %.16g \n", end - start_time);
-}
-
 void eigth()
 {
 	long a[16000];
@@ -112,12 +90,12 @@ void eigth()
 		b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
 	}
 	end_time = omp_get_wtime();
-	printf("Dynamic: = %f \n", end_time - start_time);
+	printf("Static: = %f \n", end_time - start_time);
 }
 
 void ninth()
 {
-	int size = 2000;
+	int size = 3000;
 	int chunk_size = 100;
 	int* vector = new int[size];
 	int** matrix = new int*[size];
@@ -153,9 +131,11 @@ void ninth()
 	printf("Time for parallel: %f \n", end_time - start_time);
 }
 
+
 /*
 int main()
 {
 	ninth();
 }
 */
+

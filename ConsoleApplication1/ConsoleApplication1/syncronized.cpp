@@ -44,7 +44,7 @@ void eleventh()
 	{
 		if (a[i] % 9 == 0)
 		{
-		#pragma omp atomic 
+			#pragma omp atomic
 			count++;
 		}
 	}
@@ -92,7 +92,9 @@ void thirteenth()
 }
 
 
+
 int main()
 {
-	thirteenth();
+	eleventh();
 }
+
