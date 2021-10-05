@@ -11,7 +11,7 @@ void sixth()
 	int for_sum = 0;
 	#pragma omp parallel for
 	for (int i = 0; i < 100; i++)
-	{
+	{	
 		for_sum += a[i];
 	}	
 
@@ -37,7 +37,7 @@ void seventh()
 		b[i] = rand() % 10;
 		printf("a = %d, b = %d, current thread = %d\n", a[i], b[i], omp_get_thread_num());
 	}
-	#pragma omp parallel for schedule(dynamic, 6) num_threads(4)
+	#pragma omp parallel for schedule(dynamic, 1) num_threads(4)
 	for (int i = 0; i < 12; i++)
 	{
 		c[i] = a[i] + b[i];
@@ -135,7 +135,7 @@ void ninth()
 /*
 int main()
 {
-	ninth();
+	sixth();
 }
 */
 
