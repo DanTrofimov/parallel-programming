@@ -1,5 +1,6 @@
 #include <iostream>
 #include <omp.h>
+#include "windows.h"
 
 void tenth()
 {
@@ -91,9 +92,95 @@ void thirteenth()
 	}
 }
 
+// another solutions of 13th
+void thirteenth_2()
+{
+#pragma omp parallel num_threads(8)
+	{
+		Sleep(1000 / (omp_get_thread_num() + 1));
+		printf("Current thread: %d \n", omp_get_thread_num() );
+	}
+}
 
+void thirteenth_3()
+{
+#pragma omp parallel for schedule(static, 1)
+	for (int i = omp_get_num_threads() - 1; i >= 0; i--)
+	{
+		Sleep(100 * i);
+		printf("Current thread: %d \n", omp_get_thread_num());
+	}
+}
+
+void thirteenth_4()
+{
+	int remaining_threads = 7;
+	boolean is_continue;
+	#pragma omp parallel num_threads(8)
+	{
+		while (is_continue)
+		{
+			if (remaining_threads == omp_get_thread_num())
+			{
+				printf("Current thread: %d\n", omp_get_thread_num());
+				remaining_threads--;
+			}
+			if (remaining_threads == 0) {
+				is_continue = false;
+			}
+		}
+	}
+}
+
+void delay_helper(int delay, int counter) {
+	if (counter >= 0) {
+		Sleep(delay * counter);
+		printf("Current thread: %d\n", omp_get_thread_num());
+	}
+}
+
+
+void thirteenth_5()
+{
+	int current = 8;
+	#pragma omp parallel sections num_threads(8)
+	{
+		#pragma omp section 
+		{
+			delay_helper(100, current - 1);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 2);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 3);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 4);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 5);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 6);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 7);
+		}
+		#pragma omp section 
+		{
+			delay_helper(100, current - 8);
+		}
+	}
+}
 
 int main()
 {
-	thirteenth();
+	thirteenth_5();
 }
