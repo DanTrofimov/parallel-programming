@@ -180,7 +180,9 @@ void thirteenth_5()
 	}
 }
 
+/*
 int main()
 {
-	thirteenth_5();
+	thirteenth_2();
 }
+*/ 
