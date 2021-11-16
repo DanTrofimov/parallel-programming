@@ -17,11 +17,13 @@ void first_task() {
 void second_task() {
 	int array[array_size];
 	if (rank == 0) {
-		fillArray(array);
+		for (int i = 0; i < array_size; i++) {
+			array[i] = rand();
+		}
 	}
-	int differnce = array_size / size;
-	int start = rank * differnce;
-	int end = differnce * (rank + 1);
+	int offset = array_size / size;
+	int start = rank * offset;
+	int end = offset * (rank + 1);
 	if (rank == size - 1) {
 		end = size;
 	}
@@ -53,7 +55,7 @@ void third_task() {
 	MPI_Reduce(&point_in_circle_one_rank, &all_points_in_circle, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 	if (rank == 0) {
 		double pi = 4.0 * all_points_in_circle / ((double)iteration_for_one_rank * size);
-		printf("pi = %.6f \n", pi);
+		printf("PI = %.10f \n", pi);
 	}
 }
 
@@ -105,10 +107,11 @@ void fourth_task() {
 				count += new_buffer[i];
 			}
 		}
-		printf("average = %d \n", sum / count);
+		printf("Average value = %d \n", sum / count);
 	}
 }
 
+// exception
 void fifth_task() {
 	const int matrix_size = array_size * array_size;
 	int offset = matrix_size / size;
@@ -264,7 +267,9 @@ void eigth_task() {
 	int* array = new int[array_size];
 	int* new_array = new int[array_size];
 	if (rank == 0) {
-		fillArray(array);
+		for (int i = 0; i < array_size; i++) {
+			array[i] = rand();
+		}
 		for (int i = 0; i < array_size; i++) {
 			printf("a[%d] = %d \n ", i, array[i]);
 		}
@@ -306,7 +311,9 @@ void ninth_task() {
 	MPI_Status status;
 	if (rank == 0) {
 		int* array = new int[array_size];
-		fillArray(array);
+		for (int i = 0; i < array_size; i++) {
+			array[i] = rand();
+		}
 		for (int i = 0; i < array_size; i++) {
 			printf("a[%d] = %d \n", i, array[i]);
 		}
@@ -343,12 +350,15 @@ void ninth_task() {
 	}
 }
 
+// exception
 void tenth_task() {
 	int* array = new int[array_size];
 	int* bsend_buffer = new int[10 * array_size];
 	int* buffer = new int[array_size];
 	MPI_Status status;
-	fillArray(array);
+	for (int i = 0; i < array_size; i++) {
+		array[i] = rand();
+	}
 	double start_time;
 	double end_time;
 	if (rank == 0) {
@@ -410,12 +420,10 @@ void eleventh_task() {
 	}
 }
 
-/*
-* ѕосле полного круга из задачи 11, создаем новый коммуникатор (произвольным образом, с меньшим количеством процессов) и повтор€ем процедуру.
-*/
+// exception
 void twelfth_task() {
-	/*eleventh_task();
-	MPI_Finalize();*/
+	eleventh_task();
+	MPI_Finalize();
 	MPI_Init(NULL, NULL);
 	MPI_Group group;
 	MPI_Group new_group;
@@ -449,7 +457,7 @@ int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	first_task();
+	fifth_task();
 	MPI_Finalize();
 	return 0;
 }	
