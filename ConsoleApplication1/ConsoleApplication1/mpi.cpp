@@ -243,11 +243,13 @@ void task5() {
 
 	int* matrixA = new int[matrix_size];
 	int* matrixB = new int[matrix_size];
+	// buffer for each process
 	int* buffer_matrixA = new int[matrix_size / size];
 	int* buffer_matrixB = new int[matrix_size / size];
 
 	long* buffer_c = new long[matrix_size / size];
 	if (rank == 0) {
+		// filling matrix
 		matrixA = new int[matrix_size];
 		matrixB = new int[matrix_size];
 		for (int i = 0; i < array_size; i++) {
@@ -266,7 +268,7 @@ void task5() {
 				int c_index = i * array_size + t;
 				int a_index = i * array_size + t;
 				int b_index = i * array_size + t;
-				buffer_c[c_index] = (buffer_matrixA[a_index] * buffer_matrixB[b_index]);
+				buffer_c[c_index] = buffer_matrixA[a_index] * buffer_matrixB[b_index];
 			}
 	}
 	long* matrixC = new long[matrix_size];
@@ -302,7 +304,64 @@ void task5() {
 
 // Maxmin матрицы
 void task6() {
+	const int matrix_size = array_size * array_size;
+	const int offset = matrix_size / size;
+	int buffer_size = offset;
+	int* buffer = new int[buffer_size];
+	// amount of ops for each rank
+	int* scounts = new int[size];
+	// offset from the beginning of the transmit buffer
+	int* displs = new int[size];
+	int* array = new int[matrix_size];
+	for (int i = 0; i < size - 1; i++) {
+		scounts[i] = offset;
+		displs[i] = i * offset;
+	}
+	scounts[size - 1] = offset + array_size % size;
+	displs[size - 1] = (size - 1) * array_size / size;
 
+	// filling matrix
+	if (rank == 0) {
+		for (int i = 0; i < matrix_size; i++) {
+			array[i] = rand() % 10;
+		}
+	}
+
+	for (int i = 0; i < size; i++) {
+		if (rank == i) {
+			buffer = new int[scounts[i]];
+			break;
+		}
+	}
+
+	for (int i = 0; i < array_size; i++) {
+		for (int k = 0; k < array_size; k++) {
+			printf("%d ", array[i * array_size + k]);
+		}
+		printf(" \n");
+	}
+
+	MPI_Scatterv(array, scounts, displs, MPI_INT, buffer, buffer_size, MPI_INT, 0, MPI_COMM_WORLD);
+	int maxmin = buffer[0];
+	for (int i = 0; i < array_size / size; i++) {
+		int min = buffer[i * array_size];
+		int max = buffer[i * array_size];
+		// finding max element from the min element from each column 
+		for (int k = 0; k < array_size; k++) {
+			if (min > buffer[i * array_size + k]) min = buffer[i * array_size + k];
+		}
+		if (maxmin < min) maxmin = min;
+	}
+	int min_max_buffer[1] = { maxmin };
+	int* min_max = new int[size];
+	MPI_Gather(min_max_buffer, 1, MPI_INT, min_max, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	maxmin = min_max[0];
+	if (rank == 0) {
+		for (int i = 0; i < size; i++) {
+			if (maxmin < buffer[i]) maxmin = buffer[i];
+		}
+		printf("maxmin = %d \n", maxmin);
+	}
 }
 
 // Умножение матрицы на вектор при разделении данных по столбцам
@@ -318,7 +377,7 @@ int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	task5();
+	task6();
 	MPI_Finalize();
 	return 0;
 }	
