@@ -3,7 +3,7 @@
 
 // current thread, threads amount
 int rank, size;
-const int array_size = 3;
+const int array_size = 5;
 
 // Hello world из всех процессов 
 void task1() {
@@ -252,8 +252,8 @@ void task5() {
 		matrixB = new int[matrix_size];
 		for (int i = 0; i < array_size; i++) {
 			for (int k = 0; k < array_size; k++) {
-				matrixA[i * array_size + k] = rand() % 10;
-				matrixB[k * array_size + i] = rand() % 10;
+				matrixA[i * array_size + k] = rand() % 100;
+				matrixB[k * array_size + i] = rand() % 100;
 			}
 		}
 	}
@@ -261,15 +261,13 @@ void task5() {
 	MPI_Scatterv(matrixA, scounts, displs, MPI_INT, buffer_matrixA, matrix_size / size, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Scatterv(matrixB, scounts, displs, MPI_INT, buffer_matrixB, matrix_size / size, MPI_INT, 0, MPI_COMM_WORLD);
 	for (int i = 0; i < array_size / size; i++) {
-		for (int k = 0; k < array_size; k++) {
-			buffer_c[i * array_size + k] = 0;
 			for (int t = 0; t < array_size; t++) {
-				int c_index = i * array_size + k;
+				buffer_c[i * array_size + t] = 0;
+				int c_index = i * array_size + t;
 				int a_index = i * array_size + t;
-				int b_index = k * array_size + t;
-				buffer_c[c_index] += buffer_matrixA[a_index] * buffer_matrixB[b_index];
+				int b_index = i * array_size + t;
+				buffer_c[c_index] = (buffer_matrixA[a_index] * buffer_matrixB[b_index]);
 			}
-		}
 	}
 	long* matrixC = new long[matrix_size];
 	MPI_Gather(buffer_c, matrix_size / size, MPI_LONG, matrixC, matrix_size / size, MPI_LONG, 0, MPI_COMM_WORLD);
