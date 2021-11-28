@@ -346,7 +346,7 @@ void task6() {
 	for (int i = 0; i < array_size / size; i++) {
 		int min = buffer[i * array_size];
 		int max = buffer[i * array_size];
-		// finding max element from the min element from each column 
+		// finding the min element from each column 
 		for (int k = 0; k < array_size; k++) {
 			if (min > buffer[i * array_size + k]) min = buffer[i * array_size + k];
 		}
@@ -357,6 +357,7 @@ void task6() {
 	MPI_Gather(min_max_buffer, 1, MPI_INT, min_max, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	maxmin = min_max[0];
 	if (rank == 0) {
+		// finding the max element from each min element of column 
 		for (int i = 0; i < size; i++) {
 			if (maxmin < buffer[i]) maxmin = buffer[i];
 		}
@@ -366,18 +367,123 @@ void task6() {
 
 // Умножение матрицы на вектор при разделении данных по столбцам
 void task7() {
+	const int matrix = array_size * array_size;
+	const int offset = matrix / size;
+	int buffer_size = offset;
+	int* buffer_matrix = new int[buffer_size];
+	int* buffer_vector = new int[array_size / size];
+	int* vector = new int[array_size];
+	int* array = new int[matrix];
+
+	// filling vector & array 
+	if (rank == 0) {
+		for (int i = 0; i < array_size; i++) {
+			vector[i] = rand() % 10;
+			for (int k = 0; k < array_size; k++) {
+				array[k * array_size + i] = rand() % 10;
+			}
+		}
+	}
+
+	for (int i = 0; i < array_size; i++) {
+		for (int k = 0; k < array_size; k++) {
+			printf("%d ", array[i * array_size + k]);
+		}
+		printf(" \n");
+	}
+
+	printf(" \n");
+
+	for (int i = 0; i < array_size; i++) {
+		printf("%d ", vector[i]);
+		printf(" \n");
+	}
+
+	printf(" \n");
+
+	MPI_Scatter(array, offset, MPI_INT, buffer_matrix, offset, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Scatter(vector, array_size / size, MPI_INT, buffer_vector, array_size / size, MPI_INT, 0, MPI_COMM_WORLD);
+	// calculation sum of each row after mutltiplying to vector
+	for (int i = 0; i < array_size; i++) {
+		vector[i] = 0;
+		for (int k = 0; k < array_size / size; k++) {
+			vector[i] += buffer_matrix[k * array_size + i] * buffer_vector[i];
+			vector[i] %= 10;
+		}
+	}
+	int* result_vector = new int[array_size];
+	int* buffer_vector_result = new int[array_size * size];
+	MPI_Gather(vector, array_size, MPI_INT, buffer_vector_result, array_size, MPI_INT, 0, MPI_COMM_WORLD);
+	if (rank == 0) {
+		for (int i = 0; i < array_size; i++) {
+			for (int k = 0; k < size; k++) {
+				result_vector[i] += buffer_vector_result[k * array_size + i];
+				result_vector[i] %= 10;
+			}
+			printf("%d \n", result_vector[i]);
+		}
+	}
 }
 
 // Время передачи для разных Send-oв
 void task10() {
+	int* array = new int[array_size];
+	int* bsend_buffer = new int[10 * array_size];
+	int* buffer = new int[array_size];
+	MPI_Status status;
+	for (int i = 0; i < array_size; i++) {
+		array[i] = rand();
+	}
+	double start_time;
+	double end_time;
+	if (rank == 0) {
+		start_time = MPI_Wtime();
+		// default blocking sending
+		MPI_Send(array, array_size, MPI_INT, 1, 0, MPI_COMM_WORLD);
+		end_time = MPI_Wtime();
+		printf("Send time = %.6f \n", end_time - start_time);
+	}
+	else {
+		MPI_Recv(buffer, array_size, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+	}
+	if (rank == 0) {
+		start_time = MPI_Wtime();
+		// syncronized sending, awaitng notifier
+		MPI_Ssend(array, array_size, MPI_INT, 1, 1, MPI_COMM_WORLD);
+		end_time = MPI_Wtime();
+		printf("Ssend time = %.6f \n", end_time - start_time);
+	}
+	else {
+		MPI_Recv(buffer, array_size, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+	}
+	if (rank == 0) {
+		MPI_Buffer_attach(bsend_buffer, 10 * array_size);
+		start_time = MPI_Wtime();
+		// buffered sending 
+		MPI_Bsend(array, array_size, MPI_INT, 1, 2, MPI_COMM_WORLD);
+		end_time = MPI_Wtime();
+		printf("Bsend time = %.6f \n", end_time - start_time);
+	}
+	else {
+		MPI_Recv(buffer, array_size, MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
+	}
+	if (rank == 0) {
+		start_time = MPI_Wtime();
+		// sending by ready - as fast as can
+		MPI_Rsend(array, array_size, MPI_INT, 1, 3, MPI_COMM_WORLD);
+		end_time = MPI_Wtime();
+		printf("Rsend time = %.6f \n", end_time - start_time);
+	}
+	else {
+		MPI_Recv(buffer, array_size, MPI_INT, 0, 3, MPI_COMM_WORLD, &status);
+	}
 }
-
 
 int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	task6();
+	task10();
 	MPI_Finalize();
 	return 0;
 }	
