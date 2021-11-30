@@ -3,7 +3,7 @@
 
 // current thread, threads amount
 int rank, size;
-const int array_size = 5;
+const int array_size = 3;
 
 // Hello world из всех процессов 
 void task1() {
@@ -223,7 +223,6 @@ void task11() {
 	}
 }
 
-
 // --- new ---
 
 // —кал€рное произведение
@@ -254,52 +253,26 @@ void task5() {
 		matrixB = new int[matrix_size];
 		for (int i = 0; i < array_size; i++) {
 			for (int k = 0; k < array_size; k++) {
-				matrixA[i * array_size + k] = rand() % 100;
-				matrixB[k * array_size + i] = rand() % 100;
+				matrixA[i * array_size + k] = rand() % 10;
+				matrixB[k * array_size + i] = rand() % 10;
 			}
 		}
 	}
 
 	MPI_Scatterv(matrixA, scounts, displs, MPI_INT, buffer_matrixA, matrix_size / size, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Scatterv(matrixB, scounts, displs, MPI_INT, buffer_matrixB, matrix_size / size, MPI_INT, 0, MPI_COMM_WORLD);
-	for (int i = 0; i < array_size / size; i++) {
-			for (int t = 0; t < array_size; t++) {
-				buffer_c[i * array_size + t] = 0;
-				int c_index = i * array_size + t;
-				int a_index = i * array_size + t;
-				int b_index = i * array_size + t;
-				buffer_c[c_index] = buffer_matrixA[a_index] * buffer_matrixB[b_index];
-			}
+
+	int localSum = 0;
+	for (int i = 0; i < array_size; i++) {
+		localSum += buffer_matrixA[i] * buffer_matrixB[i];
 	}
-	long* matrixC = new long[matrix_size];
-	MPI_Gather(buffer_c, matrix_size / size, MPI_LONG, matrixC, matrix_size / size, MPI_LONG, 0, MPI_COMM_WORLD);
-	if (rank == 0) {
-		for (int i = 0; i < array_size; i++) {
-			for (int k = 0; k < array_size; k++) {
-				printf("%d ", matrixA[i * array_size + k]);
-			}
-			printf(" \n");
-		}
 
-		printf(" \n");
+	int sum = 0;
+	MPI_Reduce(&localSum, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
+	printf("sum = %d", sum);
+	printf(" \n");
 
-		for (int i = 0; i < array_size; i++) {
-			for (int k = 0; k < array_size; k++) {
-				printf("%d ", matrixB[i * array_size + k]);
-			}
-			printf(" \n");
-		}
-
-		printf(" \n");
-		
-		for (int i = 0; i < array_size; i++) {
-			for (int k = 0; k < array_size; k++) {
-				printf("%d ", matrixC[i * array_size + k]);
-			}
-			printf(" \n");
-		}
-	}
 }
 
 // Maxmin матрицы
@@ -354,6 +327,7 @@ void task6() {
 	}
 	int min_max_buffer[1] = { maxmin };
 	int* min_max = new int[size];
+	// reduce 
 	MPI_Gather(min_max_buffer, 1, MPI_INT, min_max, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	maxmin = min_max[0];
 	if (rank == 0) {
@@ -367,62 +341,115 @@ void task6() {
 
 // ”множение матрицы на вектор при разделении данных по столбцам
 void task7() {
-	const int matrix = array_size * array_size;
-	const int offset = matrix / size;
-	int buffer_size = offset;
-	int* buffer_matrix = new int[buffer_size];
-	int* buffer_vector = new int[array_size / size];
-	int* vector = new int[array_size];
-	int* array = new int[matrix];
-
-	// filling vector & array 
-	if (rank == 0) {
-		for (int i = 0; i < array_size; i++) {
-			vector[i] = rand() % 10;
-			for (int k = 0; k < array_size; k++) {
-				array[k * array_size + i] = rand() % 10;
+	int n = 10, m = 12;
+	int k = n * m;
+	int* matrixT_sendcounts = new int[size];
+	int* matrixT_displs = new int[size];
+	int* vector_sendcounts = new int[size];
+	int* vector_displs = new int[size];
+	int* result = new int[n];
+	int* matrix = new int[k];
+	int* matrixT = new int[k];
+	int* vector = new int[m];
+	if (rank == 0)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			result[i] = 0;
+		}
+		srand(time(0));
+		for (int i = 0; i < k; i++)
+		{
+			matrix[i] = rand() % 50;
+		}
+		for (int i = 0, ind = 0; i < m; i++)
+		{
+			for (int j = 0; j < n; j++, ind++)
+			{
+				matrixT[ind] = matrix[j * m + i];
 			}
 		}
-	}
-
-	for (int i = 0; i < array_size; i++) {
-		for (int k = 0; k < array_size; k++) {
-			printf("%d ", array[i * array_size + k]);
-		}
-		printf(" \n");
-	}
-
-	printf(" \n");
-
-	for (int i = 0; i < array_size; i++) {
-		printf("%d ", vector[i]);
-		printf(" \n");
-	}
-
-	printf(" \n");
-
-	MPI_Scatter(array, offset, MPI_INT, buffer_matrix, offset, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Scatter(vector, array_size / size, MPI_INT, buffer_vector, array_size / size, MPI_INT, 0, MPI_COMM_WORLD);
-	// calculation sum of each row after mutltiplying to vector
-	for (int i = 0; i < array_size; i++) {
-		vector[i] = 0;
-		for (int k = 0; k < array_size / size; k++) {
-			vector[i] += buffer_matrix[k * array_size + i] * buffer_vector[i];
-			vector[i] %= 10;
-		}
-	}
-	int* result_vector = new int[array_size];
-	int* buffer_vector_result = new int[array_size * size];
-	MPI_Gather(vector, array_size, MPI_INT, buffer_vector_result, array_size, MPI_INT, 0, MPI_COMM_WORLD);
-	if (rank == 0) {
-		for (int i = 0; i < array_size; i++) {
-			for (int k = 0; k < size; k++) {
-				result_vector[i] += buffer_vector_result[k * array_size + i];
-				result_vector[i] %= 10;
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < m; j++)
+			{
+				printf("%3d ", matrix[i * m + j]);
 			}
-			printf("%d \n", result_vector[i]);
+			printf("\n");
+		}
+		printf("\n");
+		for (int i = 0; i < m; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				printf("%3d ", matrixT[i * n + j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		for (int i = 0; i < m; i++)
+		{
+			vector[i] = rand() % 50;
+			printf("%d ", vector[i]);
+		}
+		printf("\n");
+		printf("\n");
+	}
+	int r = m;
+	for (int i = 0; i < size; i++)
+	{
+		int count = r / (size - i);
+		vector_sendcounts[i] = count;
+		matrixT_sendcounts[i] = count * n;
+		if (i == 0)
+		{
+			vector_displs[i] = 0;
+			matrixT_displs[i] = 0;
+		}
+		else
+		{
+			vector_displs[i] = vector_displs[i - 1] + vector_sendcounts[i - 1];
+			matrixT_displs[i] = matrixT_displs[i - 1] + matrixT_sendcounts[i - 1];
+		}
+		r -= count;
+	}
+	int m_recvcount = vector_sendcounts[rank];
+	int* temp_vector = new int[m_recvcount];
+	int k_recvcount = matrixT_sendcounts[rank];
+	int* temp_matrixT = new int[k_recvcount];
+	MPI_Scatterv(matrixT, matrixT_sendcounts, matrixT_displs, MPI_INT, temp_matrixT, k_recvcount, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Scatterv(vector, vector_sendcounts, vector_displs, MPI_INT, temp_vector, m_recvcount, MPI_INT, 0, MPI_COMM_WORLD);
+	int* temp_result = new int[n];
+	for (int i = 0; i < n; i++)
+	{
+		temp_result[i] = 0;
+	}
+	for (int i = 0; i < m_recvcount; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			temp_result[j] = temp_result[j] + temp_matrixT[i * n + j] * temp_vector[i];
 		}
 	}
+	delete[] matrixT_sendcounts;
+	delete[] matrixT_displs;
+	delete[] vector_sendcounts;
+	delete[] vector_displs;
+	delete[] matrix;
+	delete[] matrixT;
+	delete[] vector;
+	delete[] temp_vector;
+	delete[] temp_matrixT;
+	MPI_Reduce(temp_result, result, n, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	if (rank == 0)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			printf("%d ", result[i]);
+		}
+	}
+	delete[] temp_result;
+	delete[] result;
 }
 
 // ¬рем€ передачи дл€ разных Send-oв
@@ -483,7 +510,7 @@ int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	task10();
+	task5();
 	MPI_Finalize();
 	return 0;
-}	
+}

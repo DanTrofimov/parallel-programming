@@ -2,21 +2,11 @@
 #include <cstdlib>
 #include <mpi.h>
 
+/* const int array_size = 16;
 int rank, size;
-const int array_size = 16;
 
 int arraysize(int* array) {
 	return _msize(array) / sizeof(int);
-}
-
-int getMask(int count, int sec) {
-	int result = 0;
-	for (int i = 0; i < count; i++) {
-		if (i != sec) {
-			result += pow(2, sec);
-		}
-	}
-	return result;
 }
 
 int calcAverageNumber(int* array) {
@@ -27,16 +17,6 @@ int calcAverageNumber(int* array) {
 	return sum / size;
 }
 
-int calcSum(int* array) {
-	int sum = 0;
-	for (int i = 0; i < arraysize(array); i++) {
-		sum += array[i];
-	}
-	return sum;
-}
-
-int comparator(const void*, const void*);
-
 int* lessElementPart(int* buffer, int average, int neighbour) {
 
 	MPI_Status status;
@@ -46,6 +26,8 @@ int* lessElementPart(int* buffer, int average, int neighbour) {
 	int* more_array = new int[buffer_size];
 	int less_count = 0;
 	int more_count = 0;
+	
+	// dividing elements for two different blocks 
 	for (int i = 0; i < buffer_size; i++) {
 		if (buffer[i] <= average) {
 			less_array[less_count] = buffer[i];
@@ -95,6 +77,8 @@ int* moreElementPart(int* buffer, int average, int neighbour) {
 	int* more_array = new int[buffer_size];
 	int less_count = 0;
 	int more_count = 0;
+
+	// dividing elements for two different blocks 
 	for (int i = 0; i < buffer_size; i++) {
 		if (buffer[i] <= average) {
 			less_array[less_count] = buffer[i];
@@ -135,14 +119,17 @@ void quickSort() {
 	int* start_array = new int[array_size];
 	int average = 0;
 	int neighbour = 0;
+
+	// filling array
 	if (rank == 0) {
-		printf("start array: ");
+		printf("initial array: ");
 		for (int i = 0; i < array_size; i++) {
 			start_array[i] = rand() % 100;
 			printf("%d, ", start_array[i]);
 		}
 		printf("\n");
 	}
+
 	MPI_Scatter(start_array, buffer_size, MPI_INT, buffer, buffer_size, MPI_INT, 0, MPI_COMM_WORLD);
 	int sec = log(size) / log(2) - 1;
 	while (sec >= 0) {
@@ -176,7 +163,7 @@ void quickSort() {
 			MPI_Recv(&start_array[buffer_size], recive_count, MPI_INT, i, 4, MPI_COMM_WORLD, &status);
 			buffer_size += recive_count;
 		}
-		printf("end array: ");
+		printf("result array: ");
 		for (int i = 0; i < array_size; i++) {
 			printf("%d, ", start_array[i]);
 		}
@@ -195,3 +182,4 @@ int main(int argc, char** argv) {
 	MPI_Finalize();
 	return EXIT_SUCCESS;
 }
+*/
