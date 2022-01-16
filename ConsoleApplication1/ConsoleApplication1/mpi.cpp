@@ -510,7 +510,7 @@ int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	task5();
+	task7();
 	MPI_Finalize();
 	return 0;
 }
